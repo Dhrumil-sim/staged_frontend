@@ -52,6 +52,10 @@ export class LoginComponent {
   }
 
   login() {
+    this.errorMsg = '';
+    this.successMsg = '';
+    this.generalError = '';
+    this.fieldErrors = {};
     if (!this.validateInputs()) return;
 
     // Show the loader manually before the API call
