@@ -1,0 +1,13 @@
+<!-- src/app/components/loader/loader.component.html -->
+<div
+  *ngIf="loaderType$ | async as type"
+  [ngClass]="{
+    'loader-global': type === 'global',
+    'loader-local': type === 'local',
+  }"
+>
+  <div class="spinner-container">
+    <img src="assets/music-loader.png" alt="Loading music..." class="music-loader" />
+    <p class="loading-text">Loading your beat...</p>
+  </div>
+</div>
