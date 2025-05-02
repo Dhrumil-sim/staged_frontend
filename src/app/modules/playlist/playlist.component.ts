@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-playlist',
   imports: [],
   templateUrl: './playlist.component.html',
-  styleUrl: './playlist.component.css'
+  styleUrl: './playlist.component.css',
 })
-export class PlaylistComponent {
-
-}
+export class PlaylistComponent {}
