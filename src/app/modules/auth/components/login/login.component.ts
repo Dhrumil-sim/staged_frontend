@@ -86,6 +86,9 @@ export class LoginComponent {
           localStorage.setItem('refreshToken', res.data.refreshToken);
           localStorage.setItem('role', res.data.user.role); // Save role too
 
+          if (res.data.user.role === 'artist') {
+            localStorage.setItem('artistId', res.data.user._id); // Assuming artistId is in response
+          }
           // 🧭 Role-based redirection
           const role = res.data.user.role;
 

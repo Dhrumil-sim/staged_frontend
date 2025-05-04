@@ -1,31 +1,48 @@
 <div class="p-4 overflow-x-auto">
   <h2 class="text-2xl font-semibold mb-4 text-center">Songs List</h2>
 
-  <!-- Search, Filter, Sort Controls -->
-  <div class="flex flex-wrap gap-4 mb-6 items-center justify-center">
-    <input
-      type="text"
-      [(ngModel)]="searchTerm"
-      placeholder="Search by title"
-      class="border border-gray-300 px-3 py-2 rounded w-48"
-    />
+  <!-- Top Controls: Add Song + Search, Filter, Sort -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+    <!-- Add Song Button -->
+    <div class="flex justify-center lg:justify-start">
+      <button
+        (click)="onAddSong()"
+        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow"
+      >
+        ➕ Add Song
+      </button>
+    </div>
+    <app-songs-form
+      *ngIf="showForm"
+      [songId]="editSongId"
+      (formClose)="onFormClose()"
+    ></app-songs-form>
+    <!-- Search, Filter, Sort -->
+    <div class="flex flex-wrap gap-4 items-center justify-center">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search by title"
+        class="border border-gray-300 px-3 py-2 rounded w-48"
+      />
 
-    <select [(ngModel)]="selectedGenre" class="border border-gray-300 px-3 py-2 rounded w-40">
-      <option value="">All Genres</option>
-      <option *ngFor="let genre of genres" [value]="genre">{{ genre }}</option>
-    </select>
+      <select [(ngModel)]="selectedGenre" class="border border-gray-300 px-3 py-2 rounded w-40">
+        <option value="">All Genres</option>
+        <option *ngFor="let genre of genres" [value]="genre">{{ genre }}</option>
+      </select>
 
-    <select [(ngModel)]="sortBy" class="border border-gray-300 px-3 py-2 rounded w-40">
-      <option value="createdAt">Newest First</option>
-      <option value="title">Title</option>
-    </select>
+      <select [(ngModel)]="sortBy" class="border border-gray-300 px-3 py-2 rounded w-40">
+        <option value="createdAt">Newest First</option>
+        <option value="title">Title</option>
+      </select>
 
-    <button
-      (click)="currentPage = 1; fetchSongs()"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-    >
-      Search
-    </button>
+      <button
+        (click)="currentPage = 1; fetchSongs()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+      >
+        Search
+      </button>
+    </div>
   </div>
 
   <!-- Songs Table -->

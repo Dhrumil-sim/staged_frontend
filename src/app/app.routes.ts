@@ -10,7 +10,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'register', component: SignupComponent, pathMatch: 'full' },
   {
-    path: 'song/create',
+    path: 'songs/create',
     component: SongsFormComponent,
     canActivate: [AuthGuard],
     pathMatch: 'full',

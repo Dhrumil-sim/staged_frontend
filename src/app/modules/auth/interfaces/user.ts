@@ -18,6 +18,7 @@ export interface LoginResponse {
   message: string;
   data: {
     user: {
+      _id: string;
       id: string;
       username: string;
       email: string;

@@ -5,19 +5,41 @@ import { Song } from '../song.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoaderService } from '../../../services/loader.service';
+import { SongsFormComponent } from '../songs-form/songs-form.component';
 
 @Component({
   selector: 'app-songs-list',
   templateUrl: './songs-list.component.html',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SongsFormComponent],
 })
 export class SongsListComponent implements OnInit {
   songs: Song[] = [];
   genres: string[] = ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Classical'];
+  artistId = localStorage.getItem('artistId');
+  //form rendering
+  showForm = false;
+  editSongId: string | null = null;
+
+  onAddSong() {
+    this.editSongId = null;
+    this.showForm = true;
+  }
+
+  onEdit(songId: string) {
+    this.editSongId = songId;
+    this.showForm = true;
+  }
+
+  onFormClose() {
+    this.showForm = false;
+    this.editSongId = null;
+    this.fetchSongs(); // refresh the list after form submission
+  }
 
   // Filter & Search
   searchTerm = '';
   selectedGenre = '';
+
   sortBy = 'createdAt'; // or 'title'
   // Pagination
   currentPage = 1;
@@ -43,7 +65,9 @@ export class SongsListComponent implements OnInit {
       limit: this.limit,
     };
 
-    this.songService.getAllSongs(query).subscribe({
+    console.log(this.artistId);
+
+    this.songService.getSongsByArtistId(this.artistId!, query).subscribe({
       next: (res) => {
         this.songs = res?.data?.songs || [];
         this.totalPages = Math.ceil(res?.data?.total / this.limit);
@@ -60,10 +84,6 @@ export class SongsListComponent implements OnInit {
         this.loaderService.hide(); // ⬅️ Hide loader
       },
     });
-  }
-
-  onEdit(songId: string) {
-    this.router.navigate(['/songs/edit', songId]);
   }
 
   onDelete(songId: string) {

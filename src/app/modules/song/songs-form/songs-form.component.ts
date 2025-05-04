@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SongService } from '../../../shared/services/song.service';
 import { songValidationSchema } from './song-form.validation';
 import { CommonModule } from '@angular/common';
@@ -12,21 +11,20 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
 })
 export class SongsFormComponent implements OnInit {
+  @Input() songId: string | null = null; // for edit mode
+  @Output() formClose = new EventEmitter<void>(); // to notify parent
+
   form!: FormGroup;
   isEditMode = false;
-  songId!: string;
   genres = ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Classical'];
   backendErrors: Record<string, string> = {};
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
     private songService: SongService,
-    private router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.songId = this.route.snapshot.paramMap.get('id')!;
     this.isEditMode = !!this.songId;
 
     this.form = this.fb.group({
@@ -36,7 +34,7 @@ export class SongsFormComponent implements OnInit {
       filePath: [null],
     });
 
-    if (this.isEditMode) {
+    if (this.isEditMode && this.songId) {
       this.songService.getSongById(this.songId).subscribe((res) => {
         const song = res.song;
         this.form.patchValue({
@@ -49,7 +47,6 @@ export class SongsFormComponent implements OnInit {
 
   onFileChange(event: Event, field: 'coverPicture' | 'filePath') {
     const file = (event.target as HTMLInputElement)?.files?.[0];
-
     if (file) {
       this.form.get(field)?.setValue(file);
     }
@@ -90,24 +87,26 @@ export class SongsFormComponent implements OnInit {
       formData.append('filePath', formValue.filePath);
     }
 
-    const request$ = this.isEditMode
-      ? this.songService.updateSong(this.songId, formData)
-      : this.songService.createSong(formData);
+    const request$ =
+      this.isEditMode && this.songId
+        ? this.songService.updateSong(this.songId, formData)
+        : this.songService.createSong(formData);
 
     request$.subscribe({
       next: () => {
-        this.router.navigate(['/artist']);
+        this.formClose.emit(); // ✅ Close the form and refresh parent
       },
       error: (err) => {
-        if (err.error?.errors) {
-          // For Joi backend validation errors
-          for (const key in err.error.errors) {
-            this.backendErrors[key] = err.error.errors[key];
-          }
-        } else {
-          alert(err?.error?.message || 'Unexpected error');
+        console.error('Full backend error response:', err.error);
+        const backendResponse = err.error;
+        if (backendResponse) {
+          alert(`❌ Error: ${backendResponse.message}\nCode: ${backendResponse.errorCode}`);
         }
       },
     });
+  }
+
+  onCancel() {
+    this.formClose.emit(); // ✅ Cancel and notify parent
   }
 }
