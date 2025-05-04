@@ -48,14 +48,10 @@ const songValidationSchema = Joi.object({
       'any.required': `"genre" is required`,
     }),
 
-  coverPicture: Joi.string().uri().optional().messages({
-    'string.base': `"cover_pic" should be a string`,
-    'string.uri': `"cover_pic" should be a valid URL`,
+  coverPicture: Joi.any().optional().messages({
     'any.required': `"cover_pic" is required`,
   }),
-
-  filePath: Joi.string().optional().messages({
-    'string.base': `"file_path" should be a string`,
+  filePath: Joi.any().optional().messages({
     'any.required': `"file_path" is required`,
   }),
 });

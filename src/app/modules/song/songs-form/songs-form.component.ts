@@ -49,6 +49,7 @@ export class SongsFormComponent implements OnInit {
 
   onFileChange(event: Event, field: 'coverPicture' | 'filePath') {
     const file = (event.target as HTMLInputElement)?.files?.[0];
+
     if (file) {
       this.form.get(field)?.setValue(file);
     }
@@ -95,7 +96,7 @@ export class SongsFormComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.router.navigate(['/songs']);
+        this.router.navigate(['/artist']);
       },
       error: (err) => {
         if (err.error?.errors) {

@@ -20,7 +20,6 @@ export const routes: Routes = [
     component: SongsFormComponent,
     canActivate: [AuthGuard],
     pathMatch: 'full',
-    outlet: 'modal',
   },
 
   {
