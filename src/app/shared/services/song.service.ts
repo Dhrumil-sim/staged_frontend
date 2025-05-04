@@ -10,8 +10,25 @@ export class SongService {
 
   constructor(private http: HttpClient) {}
 
-  getAllSongs(): Observable<any> {
-    return this.http.get(`${this.baseUrl}`);
+  getAllSongs(params?: {
+    title?: string;
+    genre?: string;
+    sortBy?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<any> {
+    const queryParams = new URLSearchParams();
+
+    if (params) {
+      for (const key in params) {
+        const value = params[key as keyof typeof params];
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.set(key, value.toString());
+        }
+      }
+    }
+
+    return this.http.get(`${this.baseUrl}?${queryParams.toString()}`);
   }
 
   getSongById(id: string): Observable<any> {

@@ -1,1 +1,68 @@
-<p>songs-form works!</p>
+<form (ngSubmit)="submitForm()" enctype="multipart/form-data" novalidate>
+  <!-- Title -->
+  <div class="mb-4">
+    <label for="title" class="block text-gray-700 font-medium mb-2">Title</label>
+    <input
+      id="title"
+      name="title"
+      type="text"
+      [(ngModel)]="form.value.title"
+      class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <p *ngIf="backendErrors['title']" class="text-red-600 text-sm mt-1">
+      {{ backendErrors['title'] }}
+    </p>
+  </div>
+
+  <!-- Genre -->
+  <div class="mb-4">
+    <label for="genre" class="block text-gray-700 font-medium mb-2">Genre</label>
+    <select
+      id="genre"
+      name="genre"
+      multiple
+      [(ngModel)]="form.value.genre"
+      class="w-full border border-gray-300 rounded px-4 py-2 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option *ngFor="let genre of genres" [value]="genre">{{ genre }}</option>
+    </select>
+    <p *ngIf="backendErrors['genre']" class="text-red-600 text-sm mt-1">
+      {{ backendErrors['genre'] }}
+    </p>
+  </div>
+
+  <!-- Cover Picture -->
+  <div class="mb-4">
+    <label for="coverPicture" class="block text-gray-700 font-medium mb-2">Cover Picture</label>
+    <input
+      id="coverPicture"
+      type="file"
+      (change)="onFileChange($event, 'coverPicture')"
+      class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+    />
+    <p *ngIf="backendErrors['coverPicture']" class="text-red-600 text-sm mt-1">
+      {{ backendErrors['coverPicture'] }}
+    </p>
+  </div>
+
+  <!-- Song File -->
+  <div class="mb-6">
+    <label for="filePath" class="block text-gray-700 font-medium mb-2">Audio File</label>
+    <input
+      id="filePath"
+      type="file"
+      (change)="onFileChange($event, 'filePath')"
+      class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+    />
+    <p *ngIf="backendErrors['filePath']" class="text-red-600 text-sm mt-1">
+      {{ backendErrors['filePath'] }}
+    </p>
+  </div>
+
+  <button
+    type="submit"
+    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+  >
+    {{ isEditMode ? 'Update Song' : 'Create Song' }}
+  </button>
+</form>

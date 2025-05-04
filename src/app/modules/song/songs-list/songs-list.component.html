@@ -1,1 +1,102 @@
-<p>songs-list works!</p>
+<div class="p-4 overflow-x-auto">
+  <h2 class="text-2xl font-semibold mb-4 text-center">Songs List</h2>
+
+  <!-- Search, Filter, Sort Controls -->
+  <div class="flex flex-wrap gap-4 mb-6 items-center justify-center">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Search by title"
+      class="border border-gray-300 px-3 py-2 rounded w-48"
+    />
+
+    <select [(ngModel)]="selectedGenre" class="border border-gray-300 px-3 py-2 rounded w-40">
+      <option value="">All Genres</option>
+      <option *ngFor="let genre of genres" [value]="genre">{{ genre }}</option>
+    </select>
+
+    <select [(ngModel)]="sortBy" class="border border-gray-300 px-3 py-2 rounded w-40">
+      <option value="createdAt">Newest First</option>
+      <option value="title">Title</option>
+    </select>
+
+    <button
+      (click)="currentPage = 1; fetchSongs()"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+    >
+      Search
+    </button>
+  </div>
+
+  <!-- Songs Table -->
+  <table class="min-w-full text-sm text-left border border-gray-200 rounded shadow-md">
+    <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+      <tr>
+        <th class="px-4 py-2">Cover</th>
+        <th class="px-4 py-2">Title</th>
+        <th class="px-4 py-2">Genres</th>
+        <th class="px-4 py-2">Duration</th>
+        <th class="px-4 py-2">Release Date</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let song of songs" class="border-t hover:bg-gray-50 transition duration-200">
+        <td class="px-4 py-2">
+          <img [src]="song.coverPicture" alt="Cover" class="w-12 h-12 object-cover rounded" />
+        </td>
+        <td class="px-4 py-2 font-medium">{{ song.title }}</td>
+        <td class="px-4 py-2">
+          <span
+            *ngFor="let genre of song.genre"
+            class="bg-blue-100 text-blue-700 text-xs font-medium mr-1 px-2.5 py-0.5 rounded"
+          >
+            {{ genre }}
+          </span>
+        </td>
+        <td class="px-4 py-2">{{ song.duration | number: '1.0-0' }}s</td>
+        <td class="px-4 py-2">{{ song.createdAt | date: 'mediumDate' }}</td>
+        <td class="px-4 py-2 space-x-2">
+          <button
+            (click)="onEdit(song._id!)"
+            class="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded"
+          >
+            Edit
+          </button>
+          <button
+            (click)="onDelete(song._id!)"
+            class="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- No songs found -->
+  <div *ngIf="songs.length === 0" class="text-center mt-6 text-gray-500">No songs found.</div>
+
+  <!-- Pagination -->
+  <div class="flex justify-center items-center gap-2 mt-6" *ngIf="totalPages > 1">
+    <button
+      (click)="currentPage > 1 && (currentPage = currentPage - 1); fetchSongs()"
+      [disabled]="currentPage === 1"
+      class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+    >
+      Prev
+    </button>
+
+    <span class="px-4 py-1 text-gray-700 font-medium">
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+
+    <button
+      (click)="currentPage < totalPages && (currentPage = currentPage + 1); fetchSongs()"
+      [disabled]="currentPage === totalPages"
+      class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>

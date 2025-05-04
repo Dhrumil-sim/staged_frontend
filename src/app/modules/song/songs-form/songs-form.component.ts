@@ -1,70 +1,112 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SongService } from '../../../shared/services/song.service';
+import { songValidationSchema } from './song-form.validation';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-songs-form',
   templateUrl: './songs-form.component.html',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
 })
 export class SongsFormComponent implements OnInit {
-  songForm!: FormGroup;
+  form!: FormGroup;
   isEditMode = false;
-  songId: string | null = null;
-  coverPictureFile!: File;
-  songFile!: File;
+  songId!: string;
+  genres = ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Classical'];
+  backendErrors: Record<string, string> = {};
 
   constructor(
     private fb: FormBuilder,
+    private route: ActivatedRoute,
     private songService: SongService,
     private router: Router,
-    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.songForm = this.fb.group({
-      title: ['', Validators.required],
-      genre: [[], Validators.required],
-      album: [''],
+    this.songId = this.route.snapshot.paramMap.get('id')!;
+    this.isEditMode = !!this.songId;
+
+    this.form = this.fb.group({
+      title: [''],
+      genre: [[]],
+      coverPicture: [null],
+      filePath: [null],
     });
 
-    this.songId = this.route.snapshot.paramMap.get('id');
-    if (this.songId) {
-      this.isEditMode = true;
+    if (this.isEditMode) {
       this.songService.getSongById(this.songId).subscribe((res) => {
-        this.songForm.patchValue(res.song);
+        const song = res.song;
+        this.form.patchValue({
+          title: song.title,
+          genre: song.genre,
+        });
       });
     }
   }
 
-  onCoverSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) this.coverPictureFile = file;
+  onFileChange(event: Event, field: 'coverPicture' | 'filePath') {
+    const file = (event.target as HTMLInputElement)?.files?.[0];
+    if (file) {
+      this.form.get(field)?.setValue(file);
+    }
   }
 
-  onSongFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) this.songFile = file;
-  }
+  submitForm() {
+    this.backendErrors = {};
+    const formValue = this.form.value;
 
-  onSubmit(): void {
+    // Joi validation
+    const { error } = songValidationSchema.validate(
+      {
+        title: formValue.title,
+        genre: formValue.genre,
+        coverPicture: formValue.coverPicture,
+        filePath: formValue.filePath,
+      },
+      { abortEarly: false },
+    );
+
+    if (error) {
+      for (const detail of error.details) {
+        const field = detail.path[0];
+        this.backendErrors[field] = detail.message;
+      }
+      return;
+    }
+
     const formData = new FormData();
-    const { title, genre, album } = this.songForm.value;
+    formData.append('title', formValue.title);
+    formData.append('genre', JSON.stringify(formValue.genre));
 
-    formData.append('title', title);
-    formData.append('genre', JSON.stringify(genre));
-    if (album) formData.append('album', album);
-    if (this.coverPictureFile) formData.append('coverPicture', this.coverPictureFile);
-    if (this.songFile) formData.append('filePath', this.songFile);
+    if (formValue.coverPicture) {
+      formData.append('coverPicture', formValue.coverPicture);
+    }
 
-    const request = this.isEditMode
-      ? this.songService.updateSong(this.songId!, formData)
+    if (formValue.filePath) {
+      formData.append('filePath', formValue.filePath);
+    }
+
+    const request$ = this.isEditMode
+      ? this.songService.updateSong(this.songId, formData)
       : this.songService.createSong(formData);
 
-    request.subscribe({
-      next: () => this.router.navigate(['/songs']),
-      error: (err) => alert(err?.error?.message || 'Something went wrong'),
+    request$.subscribe({
+      next: () => {
+        this.router.navigate(['/songs']);
+      },
+      error: (err) => {
+        if (err.error?.errors) {
+          // For Joi backend validation errors
+          for (const key in err.error.errors) {
+            this.backendErrors[key] = err.error.errors[key];
+          }
+        } else {
+          alert(err?.error?.message || 'Unexpected error');
+        }
+      },
     });
   }
 }
