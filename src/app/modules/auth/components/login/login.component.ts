@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router'; // ⬅️ Import Router
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { LoginResponse, loginSchema } from '../../interfaces/user';
 import { FormsModule } from '@angular/forms';
@@ -19,15 +20,21 @@ export class LoginComponent {
   errorMsg = '';
   successMsg = '';
   generalError = '';
+  showPassword = false;
   fieldErrors: Record<string, string> = {};
 
   constructor(
     private http: HttpClient,
-    public loaderService: LoaderService, // Inject LoaderService
+    private router: Router, // ⬅️ Inject router here
+    public loaderService: LoaderService,
   ) {}
 
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
   validateInputs() {
-    this.fieldErrors = {}; // Clear previous errors
+    this.fieldErrors = {};
 
     const result = loginSchema.validate(
       {
@@ -56,10 +63,10 @@ export class LoginComponent {
     this.successMsg = '';
     this.generalError = '';
     this.fieldErrors = {};
+
     if (!this.validateInputs()) return;
 
-    // Show the loader manually before the API call
-    this.loaderService.show('local'); // Show the global loader
+    this.loaderService.show('local');
 
     const payload: { email?: string; username?: string; password: string } = {
       password: this.password,
@@ -68,7 +75,6 @@ export class LoginComponent {
     if (this.email) payload.email = this.email;
     else if (this.username) payload.username = this.username;
 
-    // Make the HTTP request
     this.http
       .post<LoginResponse>('http://localhost:5000/api/user/login', payload, {
         withCredentials: true,
@@ -78,15 +84,27 @@ export class LoginComponent {
           this.successMsg = res.message;
           localStorage.setItem('accessToken', res.data.accessToken);
           localStorage.setItem('refreshToken', res.data.refreshToken);
-          // Hide the loader on success
-          // 👇 Delay the loader hide by 1 second (1000 ms)
+          localStorage.setItem('role', res.data.user.role); // Save role too
+
+          // 🧭 Role-based redirection
+          const role = res.data.user.role;
+
+          if (role === 'artist') {
+            console.log('should navigate', role);
+            this.router.navigate(['/artist']);
+          } else if (role === 'user') {
+            this.router.navigate(['/user/home']);
+            console.log('user');
+          } else {
+            this.router.navigate(['/']); // default fallback
+          }
+
           setTimeout(() => {
             this.loaderService.hide();
           }, 1000);
         },
         error: (err) => {
           this.errorMsg = err.error?.message || 'Login failed';
-          // Hide the loader on error
           this.loaderService.hide();
         },
       });

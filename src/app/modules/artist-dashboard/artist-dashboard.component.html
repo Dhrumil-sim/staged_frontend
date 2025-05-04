@@ -1,0 +1,26 @@
+<div class="w-64 bg-gray-800 text-white p-5 flex flex-col justify-between">
+  <nav>
+    <ul>
+      <li>
+        <button (click)="showSection('songs')" class="block py-2 px-4 text-xl hover:bg-gray-600">
+          Songs
+        </button>
+      </li>
+      <li>
+        <button (click)="showSection('albums')" class="block py-2 px-4 text-xl hover:bg-gray-600">
+          Albums
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Logout Button -->
+  <div class="mt-6">
+    <button
+      (click)="logout()"
+      class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded"
+    >
+      Logout
+    </button>
+  </div>
+</div>
