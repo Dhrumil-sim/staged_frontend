@@ -6,6 +6,7 @@ import { SongsListComponent } from '../song/songs-list/songs-list.component';
 import { AlbumsListComponent } from '../album/albums-list/albums-list.component';
 import { Router } from '@angular/router';
 
+import { HttpClientModule } from '@angular/common/http';
 @Component({
   selector: 'app-artist-dashboard',
   imports: [
@@ -13,6 +14,7 @@ import { Router } from '@angular/router';
     MatButtonModule, // Add MatButtonModule to use Angular Material buttons
     MatDialogModule, // Add MatDialogModule if you're using dialogs in the component
     NgSwitchCase,
+    HttpClientModule,
     SongsListComponent,
     AlbumsListComponent,
   ],
