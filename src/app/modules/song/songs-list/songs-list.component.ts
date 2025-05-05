@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoaderService } from '../../../services/loader.service';
 import { SongsFormComponent } from '../songs-form/songs-form.component';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-songs-list',
@@ -49,6 +50,7 @@ export class SongsListComponent implements OnInit {
     private songService: SongService,
     private router: Router,
     public loaderService: LoaderService,
+    private messageService: MessageService,
   ) {}
 
   ngOnInit(): void {
@@ -80,7 +82,11 @@ export class SongsListComponent implements OnInit {
         this.loaderService.hide(); // ⬅️ Hide loader
       },
       error: (err) => {
-        alert(err?.error?.message || 'Error fetching songs');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message || 'Error fetching songs',
+        });
         this.loaderService.hide(); // ⬅️ Hide loader
       },
     });
@@ -88,7 +94,23 @@ export class SongsListComponent implements OnInit {
 
   onDelete(songId: string) {
     if (confirm('Are you sure you want to delete this song?')) {
-      this.songService.deleteSong(songId).subscribe(() => this.fetchSongs());
+      this.songService.deleteSong(songId).subscribe({
+        next: () => {
+          this.fetchSongs();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Deleted',
+            detail: 'Song deleted successfully',
+          });
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Deletion Error',
+            detail: err?.error?.message || 'Failed to delete song',
+          });
+        },
+      });
     }
   }
 }

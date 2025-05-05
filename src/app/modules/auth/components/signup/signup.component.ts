@@ -9,6 +9,7 @@ import {
 import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { LoaderService } from '../../../../services/loader.service';
 import { CommonModule, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-signup',
@@ -20,23 +21,35 @@ import { CommonModule, NgIf } from '@angular/common';
 export class SignupComponent {
   registerForm: FormGroup;
   profilePicture!: File | null;
-  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  fieldErrors: { [key: string]: string } = {};
+  fieldErrors: Record<string, string> = {};
   generalError = '';
   successMsg = '';
   showPassword = false;
+  showConfirmPassword = false;
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     public loaderService: LoaderService,
+    private router: Router,
   ) {
-    this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['user', [Validators.required]],
-    });
+    this.registerForm = this.fb.group(
+      {
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]],
+        role: ['user', [Validators.required]],
+      },
+      { validators: this.passwordsMatchValidator },
+    );
+  }
+
+  passwordsMatchValidator(form: FormGroup) {
+    const password = form.get('password')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { passwordsMismatch: true };
   }
 
   onFileSelected(event: Event): void {
@@ -50,13 +63,20 @@ export class SignupComponent {
     this.showPassword = !this.showPassword;
   }
 
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   onSubmit(): void {
     this.fieldErrors = {};
     this.generalError = '';
     this.successMsg = '';
 
     if (this.registerForm.invalid || !this.profilePicture) {
-      this.generalError = 'Please fill all fields and upload a profile picture.';
+      if (!this.profilePicture) {
+        this.fieldErrors['profilePicture'] = 'Profile picture is required.';
+      }
+      this.generalError = 'Please correct the errors and try again.';
       return;
     }
 
@@ -67,7 +87,9 @@ export class SignupComponent {
     formData.append('role', this.registerForm.get('role')!.value);
     formData.append('profilePicture', this.profilePicture);
 
-    this.loaderService.show('global');
+    this.loaderService.show('local');
+    this.isSubmitting = true;
+
     this.http.post('http://localhost:5000/api/user/register', formData).subscribe({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       next: (res: any) => {
@@ -75,6 +97,12 @@ export class SignupComponent {
         this.registerForm.reset();
         this.profilePicture = null;
         this.loaderService.hide();
+        this.isSubmitting = false;
+
+        setTimeout(() => {
+          this.loaderService.hide();
+          this.router.navigate(['/login']); // 👈 Navigate to login
+        }, 1000); // optional delay for user to see success message
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 400 && err.error?.details) {
@@ -86,6 +114,7 @@ export class SignupComponent {
           this.generalError = err.error?.message || 'Something went wrong.';
         }
         this.loaderService.hide();
+        this.isSubmitting = false;
       },
     });
   }

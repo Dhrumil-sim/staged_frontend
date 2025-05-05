@@ -1,2 +1,7 @@
-<app-loader></app-loader>
+<div *ngIf="loaderService.loader$ | async as loader">
+  <div *ngIf="loader === 'global'">
+    <app-loader></app-loader>
+  </div>
+</div>
+<p-toast></p-toast>
 <router-outlet></router-outlet>

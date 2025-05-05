@@ -1,7 +1,5 @@
 <div *ngIf="loaderService.loader$ | async as loader">
-  <div *ngIf="loader === 'global'" class="loader">
-    <div class="spinner"></div>
-  </div>
+  <div *ngIf="loader === 'local'" class="loader">Loading</div>
 </div>
 
 <div

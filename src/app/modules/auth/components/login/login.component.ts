@@ -66,7 +66,7 @@ export class LoginComponent {
 
     if (!this.validateInputs()) return;
 
-    this.loaderService.show('local');
+    this.loaderService.show('global');
 
     const payload: { email?: string; username?: string; password: string } = {
       password: this.password,
