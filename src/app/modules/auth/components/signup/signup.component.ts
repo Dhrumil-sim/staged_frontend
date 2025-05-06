@@ -105,17 +105,13 @@ export class SignupComponent {
         }, 1000); // optional delay for user to see success message
       },
       error: (err: HttpErrorResponse) => {
-        console.log(err.status);
         if (err.status === 400 && err.error?.details) {
           for (const detail of err.error.details) {
             const path = detail.path[0];
             this.fieldErrors[path] = detail.message;
           }
-        } else if (err.status === 409) {
-          // Handle "User already exists"
-          this.generalError = err.error?.status || 'User already exists.';
         } else {
-          this.generalError = err.error?.message || 'Something went wrong. Please try again.';
+          this.generalError = err.error?.message || 'Something went wrong.';
         }
         this.loaderService.hide();
         this.isSubmitting = false;
