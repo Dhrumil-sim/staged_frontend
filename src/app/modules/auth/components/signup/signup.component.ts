@@ -10,6 +10,7 @@ import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common
 import { LoaderService } from '../../../../services/loader.service';
 import { CommonModule, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
+import { LoginResponse } from '../../interfaces/user';
 
 @Component({
   selector: 'app-signup',
@@ -110,14 +111,43 @@ export class SignupComponent {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       next: (res: any) => {
         this.successMsg = res.message || 'Registration successful!';
-        this.registerForm.reset();
-        this.profilePicture = null;
-        this.loaderService.hide();
-        this.isSubmitting = false;
+        const email = this.registerForm.get('email')!.value;
+        const password = this.registerForm.get('password')!.value;
 
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1000);
+        // 🟢 Immediately attempt login
+        this.http
+          .post<LoginResponse>(
+            'http://localhost:5000/api/user/login',
+            { email, password },
+            { withCredentials: true },
+          )
+          .subscribe({
+            next: (loginRes: LoginResponse) => {
+              // Store tokens and user role
+              localStorage.setItem('accessToken', loginRes.data.accessToken);
+              localStorage.setItem('refreshToken', loginRes.data.refreshToken);
+              localStorage.setItem('role', loginRes.data.user.role);
+
+              if (loginRes.data.user.role === 'artist') {
+                localStorage.setItem('artistId', loginRes.data.user._id);
+                this.router.navigate(['/artist']);
+              } else if (loginRes.data.user.role === 'user') {
+                this.router.navigate(['/user/home']);
+              } else {
+                this.router.navigate(['/']);
+              }
+
+              this.loaderService.hide();
+              this.isSubmitting = false;
+              this.registerForm.reset();
+              this.profilePicture = null;
+            },
+            error: () => {
+              this.generalError = 'Registered but login failed. Please try logging in manually.';
+              this.loaderService.hide();
+              this.isSubmitting = false;
+            },
+          });
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 400 && err.error?.details) {
