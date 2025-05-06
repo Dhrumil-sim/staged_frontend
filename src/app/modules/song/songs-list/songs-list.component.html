@@ -1,3 +1,7 @@
+<div *ngIf="loaderService.loader$ | async as loader">
+  <div *ngIf="loader === 'local'" class="loader">Loading</div>
+</div>
+
 <div class="p-4 overflow-x-auto">
   <h2 class="text-2xl font-semibold mb-4 text-center">Songs List</h2>
 
