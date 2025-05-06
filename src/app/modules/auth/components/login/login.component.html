@@ -13,27 +13,13 @@
       <div>
         <input
           type="text"
-          [(ngModel)]="username"
-          name="username"
-          placeholder="Username (optional)"
+          [(ngModel)]="loginIdentifier"
+          name="loginIdentifier"
+          placeholder="Email or Username"
           class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
-        <p *ngIf="fieldErrors['username']" class="text-red-500 text-sm mt-1">
-          {{ fieldErrors['username'] }}
-        </p>
-      </div>
-
-      <!-- Email -->
-      <div>
-        <input
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          placeholder="Email (optional)"
-          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-        <p *ngIf="fieldErrors['email']" class="text-red-500 text-sm mt-1">
-          {{ fieldErrors['email'] }}
+        <p *ngIf="fieldErrors['loginIdentifier']" class="text-red-500 text-sm mt-1">
+          {{ fieldErrors['loginIdentifier'] }}
         </p>
       </div>
 

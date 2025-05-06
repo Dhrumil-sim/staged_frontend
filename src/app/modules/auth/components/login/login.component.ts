@@ -14,13 +14,14 @@ import { CommonModule, NgIf } from '@angular/common';
   styleUrls: ['./login.component.css'],
 })
 export class LoginComponent {
-  email = '';
-  username = '';
+  email: string | undefined = '';
+  username: string | undefined = '';
   password = '';
   errorMsg = '';
   successMsg = '';
   generalError = '';
   showPassword = false;
+  loginIdentifier = '';
   fieldErrors: Record<string, string> = {};
 
   constructor(
@@ -32,9 +33,22 @@ export class LoginComponent {
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
-
+  isValidEmail(email: string): boolean {
+    const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    return re.test(email);
+  }
   validateInputs() {
     this.fieldErrors = {};
+    const isEmail = this.isValidEmail(this.loginIdentifier);
+    const isUsername = !isEmail && this.loginIdentifier.trim().length;
+    if (isEmail) {
+      this.username = undefined;
+      this.email = this.loginIdentifier;
+    }
+    if (isUsername) {
+      this.email = undefined;
+      this.username = this.loginIdentifier;
+    }
 
     const result = loginSchema.validate(
       {
@@ -93,11 +107,9 @@ export class LoginComponent {
           const role = res.data.user.role;
 
           if (role === 'artist') {
-            console.log('should navigate', role);
             this.router.navigate(['/artist']);
           } else if (role === 'user') {
             this.router.navigate(['/user/home']);
-            console.log('user');
           } else {
             this.router.navigate(['/']); // default fallback
           }
