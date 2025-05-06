@@ -58,7 +58,7 @@ export class SongsListComponent implements OnInit {
   }
 
   fetchSongs() {
-    this.loaderService.show('local');
+    this.loaderService.show('global');
     const query = {
       title: this.searchTerm,
       genre: this.selectedGenre,
@@ -67,27 +67,37 @@ export class SongsListComponent implements OnInit {
       limit: this.limit,
     };
 
-    console.log(this.artistId);
-
     this.songService.getSongsByArtistId(this.artistId!, query).subscribe({
       next: (res) => {
-        this.songs = res?.data?.songs || [];
-        this.totalPages = Math.ceil(res?.data?.total / this.limit);
+        const fetchedSongs = res?.data?.songs || [];
 
-        const baseUrl = 'http://localhost:5000';
-        this.songs = this.songs.map((song: Song) => ({
-          ...song,
-          coverPicture: `${baseUrl}/${song.coverPicture?.replace(/\\/g, '/').replace('public/', '')}`,
-        }));
-        this.loaderService.hide(); // ⬅️ Hide loader
+        if (fetchedSongs.length === 0) {
+          this.songs = [];
+          this.totalPages = 1;
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'No Results',
+            detail: 'No songs found for the search criteria',
+          });
+        } else {
+          const baseUrl = 'http://localhost:5000';
+          this.songs = fetchedSongs.map((song: Song) => ({
+            ...song,
+            coverPicture: `${baseUrl}/${song.coverPicture?.replace(/\\/g, '/').replace('public/', '')}`,
+          }));
+          this.totalPages = Math.ceil(res?.data?.total / this.limit);
+        }
+
+        this.loaderService.hide();
       },
       error: (err) => {
+        this.songs = []; // Clear list on error too
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: err?.error?.message || 'Error fetching songs',
         });
-        this.loaderService.hide(); // ⬅️ Hide loader
+        this.loaderService.hide();
       },
     });
   }

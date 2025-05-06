@@ -49,7 +49,7 @@ export class SignupComponent {
   passwordsMatchValidator(form: FormGroup) {
     const password = form.get('password')?.value;
     const confirmPassword = form.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { passwordsMismatch: true };
+    return password === confirmPassword ? null : { mismatch: true };
   }
 
   onFileSelected(event: Event): void {
@@ -67,15 +67,31 @@ export class SignupComponent {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
+  getControlError(controlName: string): string | null {
+    const control = this.registerForm.get(controlName);
+    if (control && control.touched && control.invalid) {
+      if (control.errors?.['required']) return 'This field is required.';
+      if (control.errors?.['minlength'])
+        return `Minimum ${control.errors['minlength'].requiredLength} characters required.`;
+      if (control.errors?.['maxlength'])
+        return `Maximum ${control.errors['maxlength'].requiredLength} characters allowed.`;
+      if (control.errors?.['email']) return 'Enter a valid email address.';
+    }
+    return null;
+  }
+
   onSubmit(): void {
     this.fieldErrors = {};
     this.generalError = '';
     this.successMsg = '';
 
     if (this.registerForm.invalid || !this.profilePicture) {
+      this.registerForm.markAllAsTouched();
+
       if (!this.profilePicture) {
         this.fieldErrors['profilePicture'] = 'Profile picture is required.';
       }
+
       this.generalError = 'Please correct the errors and try again.';
       return;
     }
@@ -87,7 +103,7 @@ export class SignupComponent {
     formData.append('role', this.registerForm.get('role')!.value);
     formData.append('profilePicture', this.profilePicture);
 
-    this.loaderService.show('local');
+    this.loaderService.show('global');
     this.isSubmitting = true;
 
     this.http.post('http://localhost:5000/api/user/register', formData).subscribe({
@@ -100,9 +116,8 @@ export class SignupComponent {
         this.isSubmitting = false;
 
         setTimeout(() => {
-          this.loaderService.hide();
-          this.router.navigate(['/login']); // 👈 Navigate to login
-        }, 1000); // optional delay for user to see success message
+          this.router.navigate(['/login']);
+        }, 1000);
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 400 && err.error?.details) {
@@ -111,7 +126,7 @@ export class SignupComponent {
             this.fieldErrors[path] = detail.message;
           }
         } else {
-          this.generalError = err.error?.message || 'Something went wrong.';
+          this.generalError = err.error?.errorCode || 'Something went wrong.';
         }
         this.loaderService.hide();
         this.isSubmitting = false;
